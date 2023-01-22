@@ -1,0 +1,17 @@
+{
+  "dirs": {
+        "ac": "/opt/assetto",
+        "content": "/opt/assetto/content",
+        "track": "/opt/assetto/content/tracks",
+        "car": "/opt/assetto/content/cars",
+        "server": "/home/steam"
+  },
+  "settings": {
+        "steam_user": "steam"
+  },
+  "db": {
+    "pass": "uO0ak6EH7DaaU67y",
+    "user": "accfg",
+    "dbname": "accfg"
+  }
+}
