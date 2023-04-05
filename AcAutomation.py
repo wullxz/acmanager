@@ -330,9 +330,14 @@ class AcServer:
     shutil.rmtree(path)
 
   def get_server(srvnum):
-    cfg = ConfigParser()
-    cfg.read(Path(f"{server_dir}").joinpath(f"server{srvnum}/cfg/server_cfg.ini"))
-    return {section: dict(cfg.items(section)) for section in cfg.sections()}
+    srvcfg = ConfigParser()
+    srvcfg.read(Path(f"{server_dir}").joinpath(f"server{srvnum}/cfg/server_cfg.ini"))
+    entrycfg = ConfigParser()
+    entrycfg.read(Path(f"{server_dir}").joinpath(f"server{srvnum}/cfg/entry_list.ini"))
+
+    server = {section: dict(srvcfg.items(section)) for section in srvcfg.sections()}
+    entries = {section: dict(entrycfg.items(section)) for section in entrycfg.sections()}
+    return {"server": server, "entries": entries, "srvnum": srvnum}
 
 
   def create_files(self):
@@ -348,16 +353,29 @@ class AcServer:
     #os.system(f"chown -R {usr}:{usr} {server_dir}/server{srvnum}")
 
   def create_config(self, data):
-    self.ac_config = AcConfig(srvnum=self.srvnum,
-                       srvname=data['server_name'],
-                       cars=data['cars'],
-                       track=data['track'],
-                       layout=data['layout'],
-                       password=data['server_pass'],
-                       admin_password=data['admin_pass'])
-    self.ac_config.print_config()
-    self.ac_config.write_config()
-    self.restart_server()
+    pprint(data)
+    try:
+      self.create_files()
+      srvdata = data['server']
+      if not srvdata['password']:
+        srvdata['password'] = ''
+      if not srvdata['admin_password']:
+        srvdata['admin_password'] = 'thisisthedefaultpassword'
+      self.ac_config = AcConfig(srvnum=self.srvnum,
+                        srvname=srvdata['name'],
+                        cars=data['cars'],
+                        track=srvdata['track'],
+                        layout=srvdata['config_track'],
+                        password=srvdata['password'],
+                        admin_password=srvdata['admin_password'])
+      self.ac_config.print_config()
+      self.ac_config.write_config()
+      self.restart_server()
+      return (True, None)
+    except Exception as e:
+      print(str(e))
+      traceback.print_exc()
+      return (False, e)
 
   def restart_server(self):
     os.system(f'systemctl restart ac@{self.srvnum}')
